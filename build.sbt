@@ -18,7 +18,7 @@ lazy val productService = (project in file("."))
       "org.json4s" %% "json4s-jackson" % "4.0.3",
       // database
       "com.typesafe.slick" %% "slick" % "3.3.2",
-      "com.h2database" % "h2" % "1.4.196",
+      "com.h2database" % "h2" % "1.4.200",
       "com.mchange" % "c3p0" % "0.9.5.2",
       // http client
       "org.apache.httpcomponents" % "httpclient" % "4.5.6",
@@ -37,9 +37,6 @@ flywayLocations := Seq("migration/h2database")
 flywayUrl := "jdbc:h2:./target/productServiceH2"
 flywayUser := "root"
 flywayPassword := ""
-flywayUrl in Test := "jdbc:h2:./target/productServiceTestH2"
-flywayUser in Test := "root"
-flywayPassword in Test := ""
 
 enablePlugins(JettyPlugin)
 enablePlugins(FlywayPlugin)
