@@ -3,11 +3,16 @@
     <!-- encoders are assigned the type
          ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <pattern>
+        [%-5level][%d][%thread][%logger{36}:%L][traceId=%X{traceId}] %msg%n
+      </pattern>
     </encoder>
   </appender>
 
   <root level="info">
-    <appender-ref ref="STDOUT" />
+    <appender-ref ref="STDOUT"/>
   </root>
+
+  <logger name="com.nike" level="error"/>
+
 </configuration>
