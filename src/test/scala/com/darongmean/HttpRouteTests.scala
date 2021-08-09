@@ -1,7 +1,7 @@
-package com.darongmean.infrastructure
+package com.darongmean
 
-import com.darongmean.HttpRoute
 import com.darongmean.Product._
+import com.darongmean.infrastructure.H2Database
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
