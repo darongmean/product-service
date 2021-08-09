@@ -1,7 +1,7 @@
 package com.darongmean.infrastructure
 
 import com.darongmean.ProductService.CreateProductRequest
-import com.darongmean.workflow.CreateProduct
+import com.darongmean.workflow.{CreateProduct, DeleteProduct}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -31,6 +31,7 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
   val createProduct = new CreateProduct(db)
+  val deleteProduct = new DeleteProduct(db)
 
   before() {
     contentType = formats("json")
@@ -44,4 +45,7 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
     createProduct.processRequest(parsedBody.extract[CreateProductRequest])
   }
 
+  delete("/v1/product/:productId") {
+    deleteProduct.processRequest(params("productId"))
+  }
 }

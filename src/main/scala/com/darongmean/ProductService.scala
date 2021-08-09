@@ -1,5 +1,7 @@
 package com.darongmean
 
+import scala.util.{Failure, Success, Try}
+
 object ProductService {
 
   case class ProductData(productId: Long,
@@ -12,9 +14,13 @@ object ProductService {
                                   productDescription: String = null)
 
   case class CreateProductResponse(status: Int,
-                                   data: ProductData = null,
+                                   data: ProductData,
                                    detail: String = null,
                                    traceId: String = null)
+
+  case class NoDataResponse(status: Int,
+                            detail: String = null,
+                            traceId: String = null)
 
   def validateCreateProductRequest(request: CreateProductRequest): Either[String, CreateProductRequest] = {
     if (isNullOrEmpty(request.productName)) {
@@ -26,6 +32,19 @@ object ProductService {
     }
 
     Right(request)
+  }
+
+  def validateProductId(paramProductId: String): Either[String, Long] = {
+    if (isNullOrEmpty(paramProductId)) {
+      return Left("productId is invalid")
+    }
+
+    Try {
+      paramProductId.toLong
+    } match {
+      case Success(v) => Right(v)
+      case Failure(_) => Left("productId is invalid")
+    }
   }
 
   private def isNullOrEmpty(s: String) = null == s || s.isEmpty || s.isBlank

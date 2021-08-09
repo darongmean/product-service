@@ -47,10 +47,37 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
       assert(parsedResponse.data.productPriceUsd == someProductPrice)
       assert(parsedResponse.data.productDescription == someProductDescription)
       assert(parsedResponse.data.productId != 0)
+
       val selectRows = db.runAndWait(
         sql"select productPriceUsd from Product".as[(BigDecimal)]
       )
       assert(selectRows == Right(Vector(someProductPrice)))
+    }
+  }
+
+  test("DELETE /v1/product on ProductHttpEndpoint should return status 200") {
+    var productId: Long = 0
+
+    post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[CreateProductResponse]
+      productId = parsedResponse.data.productId
+    }
+
+    delete(s"/v1/product/$productId") {
+      assert(status == 200)
+      assert(header("Content-Type") == "application/json;charset=utf-8")
+
+      val selectProductActiveRows = db.runAndWait(
+        sql"select productId from ProductActive where productId = $productId".as[Long]
+      )
+      assert(selectProductActiveRows == Right(Vector()))
+
+      val selectProductRows = db.runAndWait(
+        sql"select count(*) from Product where productId = $productId".as[Long]
+      )
+      assert(selectProductRows == Right(Vector(2)))
     }
   }
 }
