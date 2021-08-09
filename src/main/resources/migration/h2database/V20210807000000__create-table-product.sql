@@ -1,8 +1,8 @@
 create table Product(
     productId bigint auto_increment not null,
     productName varchar(255) not null,
+    productPriceUsd decimal(13,4) not null,
     productDescription varchar(5000),
-    productPriceUsd decimal(13,4),
     softDeleteAt timestamp,
     -- non-functional
     productPk identity primary key,

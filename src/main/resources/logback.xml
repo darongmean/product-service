@@ -9,10 +9,11 @@
     </encoder>
   </appender>
 
-  <root level="info">
+  <root level="error">
     <appender-ref ref="STDOUT"/>
   </root>
 
-  <logger name="com.nike" level="error"/>
+  <logger name="com.nike" level="info"/>
+  <logger name="com.darongmean" level="debug"/>
 
 </configuration>

@@ -1,9 +1,13 @@
 package com.darongmean.infrastructure
 
+import com.darongmean.ProductService.CreateProductRequest
+import com.darongmean.workflow.CreateProduct
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
+import org.scalatra.json._
 
 /*
- - create a new product
+- create a new product
    - name
    - price, in USD
    - description, optional
@@ -23,10 +27,21 @@ import org.scalatra._
    - should remain in db for audit purpose
  */
 
-class ProductHttpEndpoint extends ScalatraServlet {
+class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with JacksonJsonSupport {
+  protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
+
+  val createProduct = new CreateProduct(db)
+
+  before() {
+    contentType = formats("json")
+  }
 
   get("/") {
-    <h1>Hello, World!</h1>
+    Ok(s"{'status': 200, data='Hello World!', 'traceId': ${TraceId.get()}}")
+  }
+
+  post("/v1/product") {
+    createProduct.processRequest(parsedBody.extract[CreateProductRequest])
   }
 
 }
