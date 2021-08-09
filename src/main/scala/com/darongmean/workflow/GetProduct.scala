@@ -12,6 +12,7 @@ class GetProduct(db: H2Database) {
     for {
       productId <- ProductService.validateProductId(paramProductId)
       productData <- selectProduct(productId)
+      _ <- incrementViewCount(productId)
     } yield {
       productData
     }
@@ -28,6 +29,14 @@ class GetProduct(db: H2Database) {
         Right(ProductData(productId, productName, productPriceUsd, productDescription))
       case Left(ex) => Left(ex)
     }
+  }
+
+  def incrementViewCount(productId: Long): Either[Throwable, Int] = {
+    val statement =
+      sqlu"""update ProductActive
+             set viewCount = viewCount + 1
+             where productId = ${productId}"""
+    db.runAndWait(statement)
   }
 
 }

@@ -101,6 +101,11 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
       assert(parsedResponse.data.productPriceUsd == someProductPrice)
       assert(parsedResponse.data.productDescription == someProductDescription)
       assert(parsedResponse.data.productId == productId)
+
+      val selectProductActiveRows = db.runAndWait(
+        sql"select viewCount from ProductActive where productId = $productId".as[Long]
+      )
+      assert(selectProductActiveRows == Right(Vector(1)))
     }
   }
 }
