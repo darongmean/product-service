@@ -1,7 +1,7 @@
 package com.darongmean.infrastructure
 
-import com.darongmean.ProductService.{CreateProductRequest, CreateProductResponse, NoDataResponse}
-import com.darongmean.workflow.{CreateProduct, DeleteProduct}
+import com.darongmean.ProductService._
+import com.darongmean.workflow._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json._
@@ -32,6 +32,7 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
 
   val createProduct = new CreateProduct(db)
   val deleteProduct = new DeleteProduct(db)
+  val getProduct = new GetProduct(db)
 
   before() {
     contentType = formats("json")
@@ -44,7 +45,7 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
   post("/v1/product") {
     val traceId = TraceId.get()
     createProduct.processRequest(parsedBody.extract[CreateProductRequest]) match {
-      case Right(productData) => Ok(CreateProductResponse(status = 200, data = productData, traceId = traceId))
+      case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
       case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
@@ -55,6 +56,15 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
     deleteProduct.processRequest(params("productId")) match {
       case Right(_) => Ok(NoDataResponse(status = 200, traceId = traceId))
       case Left(_: String) => Ok(NoDataResponse(status = 200, traceId = traceId))
+      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
+    }
+  }
+
+  get("/v1/product/:productId") {
+    val traceId = TraceId.get()
+    getProduct.processRequest(params("productId")) match {
+      case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
+      case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
   }

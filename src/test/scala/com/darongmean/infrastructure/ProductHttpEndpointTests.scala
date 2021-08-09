@@ -1,6 +1,6 @@
 package com.darongmean.infrastructure
 
-import com.darongmean.ProductService.{CreateProductRequest, CreateProductResponse}
+import com.darongmean.ProductService.{CreateProductRequest, SingleProductResponse}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -36,12 +36,12 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
   val someProductPrice: BigDecimal = 100.59
   val someProductDescription = "desc-xyz-987"
 
-  test("POST /v1/product on ProductHttpEndpoint should return status 200") {
+  test("POST /v1/product should return status 200") {
     post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
       assert(status == 200)
       assert(header("Content-Type") == "application/json;charset=utf-8")
 
-      val parsedResponse = parse(body).extract[CreateProductResponse]
+      val parsedResponse = parse(body).extract[SingleProductResponse]
       assert(parsedResponse.status == 200)
       assert(parsedResponse.data.productName == someProductName)
       assert(parsedResponse.data.productPriceUsd == someProductPrice)
@@ -55,13 +55,13 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
     }
   }
 
-  test("DELETE /v1/product on ProductHttpEndpoint should return status 200") {
+  test("DELETE /v1/product should return status 200") {
     var productId: Long = 0
 
     post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
       assert(status == 200)
 
-      val parsedResponse = parse(body).extract[CreateProductResponse]
+      val parsedResponse = parse(body).extract[SingleProductResponse]
       productId = parsedResponse.data.productId
     }
 
@@ -78,6 +78,29 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
         sql"select count(*) from Product where productId = $productId".as[Long]
       )
       assert(selectProductRows == Right(Vector(2)))
+    }
+  }
+
+  test("Get /v1/product should return status 200") {
+    var productId: Long = 0
+
+    post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+      assert(header("Content-Type") == "application/json;charset=utf-8")
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      assert(parsedResponse.status == 200)
+      assert(parsedResponse.data.productName == someProductName)
+      assert(parsedResponse.data.productPriceUsd == someProductPrice)
+      assert(parsedResponse.data.productDescription == someProductDescription)
+      assert(parsedResponse.data.productId == productId)
     }
   }
 }

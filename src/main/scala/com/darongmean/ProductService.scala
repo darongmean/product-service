@@ -13,7 +13,7 @@ object ProductService {
                                   productPriceUsd: BigDecimal = null,
                                   productDescription: String = null)
 
-  case class CreateProductResponse(status: Int,
+  case class SingleProductResponse(status: Int,
                                    data: ProductData,
                                    detail: String = null,
                                    traceId: String = null)
