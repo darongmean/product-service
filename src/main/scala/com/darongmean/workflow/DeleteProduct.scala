@@ -1,6 +1,6 @@
 package com.darongmean.workflow
 
-import com.darongmean.ProductService
+import com.darongmean.Product
 import com.darongmean.infrastructure.{H2Database, TraceId}
 import slick.jdbc.H2Profile.api._
 
@@ -11,7 +11,7 @@ class DeleteProduct(db: H2Database) {
     val traceId = TraceId.get()
 
     for {
-      productId <- ProductService.validateProductId(paramProductId)
+      productId <- Product.delete(paramProductId)
       _ <- insertProduct(traceId, productId)
       _ <- deleteProductActive(productId)
     } yield {

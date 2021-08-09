@@ -1,4 +1,5 @@
-import com.darongmean.infrastructure.{H2Database, ProductHttpEndpoint}
+import com.darongmean.HttpRoute
+import com.darongmean.infrastructure.H2Database
 import com.nike.wingtips.servlet.RequestTracingFilter
 import org.scalatra._
 import org.slf4j.{Logger, LoggerFactory}
@@ -12,7 +13,7 @@ class ScalatraBootstrap extends LifeCycle {
 
   override def init(context: ServletContext): Unit = {
     context.mount(classOf[RequestTracingFilter], "/*")
-    context.mount(new ProductHttpEndpoint(db), "/*")
+    context.mount(new HttpRoute(db), "/*")
   }
 
   override def destroy(context: ServletContext): Unit = {

@@ -1,6 +1,7 @@
-package com.darongmean.infrastructure
+package com.darongmean
 
-import com.darongmean.ProductService._
+import com.darongmean.Product._
+import com.darongmean.infrastructure.{H2Database, TraceId}
 import com.darongmean.workflow._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
@@ -27,7 +28,7 @@ import org.scalatra.json._
    - should remain in db for audit purpose
  */
 
-class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with JacksonJsonSupport {
+class HttpRoute(val db: H2Database) extends ScalatraServlet with JacksonJsonSupport {
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
   val createProduct = new CreateProduct(db)
@@ -45,7 +46,7 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
 
   post("/v1/product") {
     val traceId = TraceId.get()
-    createProduct.processRequest(parsedBody.extract[CreateProductRequest]) match {
+    createProduct.processRequest(parsedBody.extract[InsertProduct]) match {
       case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
       case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))

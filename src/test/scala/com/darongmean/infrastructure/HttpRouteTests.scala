@@ -1,6 +1,7 @@
 package com.darongmean.infrastructure
 
-import com.darongmean.ProductService._
+import com.darongmean.HttpRoute
+import com.darongmean.Product._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -10,7 +11,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import slick.jdbc.H2Profile.api._
 
 
-class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach {
+class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
 
   val logger: Logger = LoggerFactory.getLogger(getClass)
   val db = new H2Database
@@ -29,14 +30,14 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
     db.closeDbConnection()
   }
 
-  addServlet(new ProductHttpEndpoint(db), "/*")
+  addServlet(new HttpRoute(db), "/*")
 
   val someProductName = "name-abc-001"
   val someProductPrice: BigDecimal = 100.59
   val someProductDescription = "desc-xyz-987"
 
   test("POST /v1/product should return status 200") {
-    post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
+    post("/v1/product", write(InsertProduct(someProductName, someProductPrice, someProductDescription))) {
       assert(status == 200)
       assert(header("Content-Type") == "application/json;charset=utf-8")
 
@@ -57,7 +58,7 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
   test("DELETE /v1/product should return status 200") {
     var productId: Long = 0
 
-    post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
+    post("/v1/product", write(InsertProduct(someProductName, someProductPrice, someProductDescription))) {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[SingleProductResponse]
@@ -83,7 +84,7 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
   test("Get /v1/product should return status 200") {
     var productId: Long = 0
 
-    post("/v1/product", write(CreateProductRequest(someProductName, someProductPrice, someProductDescription))) {
+    post("/v1/product", write(InsertProduct(someProductName, someProductPrice, someProductDescription))) {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[SingleProductResponse]
@@ -111,7 +112,7 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
   test("Get /v1/product/mostView should return status 200") {
     var productId: Long = 0
     // setup product 01
-    post("/v1/product", write(CreateProductRequest(someProductName + "01", someProductPrice, someProductDescription))) {
+    post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[SingleProductResponse]
@@ -124,7 +125,7 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
       assert(status == 200)
     }
     // setup product 02
-    post("/v1/product", write(CreateProductRequest(someProductName + "02", someProductPrice, someProductDescription))) {
+    post("/v1/product", write(InsertProduct(someProductName + "02", someProductPrice, someProductDescription))) {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[SingleProductResponse]
@@ -134,7 +135,7 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
       assert(status == 200)
     }
     // setup product 03
-    post("/v1/product", write(CreateProductRequest(someProductName + "03", someProductPrice, someProductDescription))) {
+    post("/v1/product", write(InsertProduct(someProductName + "03", someProductPrice, someProductDescription))) {
       assert(status == 200)
     }
     // assert
