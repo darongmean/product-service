@@ -1,6 +1,6 @@
 package com.darongmean.infrastructure
 
-import com.darongmean.ProductService.{CreateProductRequest, SingleProductResponse}
+import com.darongmean.ProductService._
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -30,7 +30,6 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
   }
 
   addServlet(new ProductHttpEndpoint(db), "/*")
-
 
   val someProductName = "name-abc-001"
   val someProductPrice: BigDecimal = 100.59
@@ -106,6 +105,47 @@ class ProductHttpEndpointTests extends ScalatraFunSuite with BeforeAndAfterEach 
         sql"select viewCount from ProductActive where productId = $productId".as[Long]
       )
       assert(selectProductActiveRows == Right(Vector(1)))
+    }
+  }
+
+  test("Get /v1/product/mostView should return status 200") {
+    var productId: Long = 0
+    // setup product 01
+    post("/v1/product", write(CreateProductRequest(someProductName + "01", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // setup product 02
+    post("/v1/product", write(CreateProductRequest(someProductName + "02", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // setup product 03
+    post("/v1/product", write(CreateProductRequest(someProductName + "03", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+    }
+    // assert
+    get(s"/v1/product/mostView?limit=10") {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[MultiProductResponse]
+      assert(parsedResponse.data.length == 2)
+      assert(parsedResponse.data.exists(p => p.productName == someProductName + "01"))
+      assert(parsedResponse.data.exists(p => p.productName == someProductName + "02"))
+      assert(!parsedResponse.data.exists(p => p.productName == someProductName + "03"))
     }
   }
 }

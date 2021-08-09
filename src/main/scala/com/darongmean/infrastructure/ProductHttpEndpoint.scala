@@ -33,6 +33,7 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
   val createProduct = new CreateProduct(db)
   val deleteProduct = new DeleteProduct(db)
   val getProduct = new GetProduct(db)
+  val listMostViewProduct = new ListMostViewProduct(db)
 
   before() {
     contentType = formats("json")
@@ -65,6 +66,15 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
     getProduct.processRequest(params("productId")) match {
       case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
       case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
+      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
+    }
+  }
+
+  get("/v1/product/mostView") {
+    val traceId = TraceId.get()
+    listMostViewProduct.processRequest(params("limit")) match {
+      case Right(productDataList) => Ok(MultiProductResponse(status = 200, data = productDataList, traceId = traceId))
+      case Left(_: String) => Ok(NoDataResponse(status = 200, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
   }

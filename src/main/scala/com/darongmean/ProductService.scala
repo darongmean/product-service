@@ -22,6 +22,11 @@ object ProductService {
                             detail: String = null,
                             traceId: String = null)
 
+  case class MultiProductResponse(status: Int,
+                                  data: Vector[ProductData],
+                                  detail: String = null,
+                                  traceId: String = null)
+
   def validateCreateProductRequest(request: CreateProductRequest): Either[String, CreateProductRequest] = {
     if (isNullOrEmpty(request.productName)) {
       return Left("productName is required")
@@ -44,6 +49,19 @@ object ProductService {
     } match {
       case Success(v) => Right(v)
       case Failure(_) => Left("productId is invalid")
+    }
+  }
+
+  def validateLimit(paramLimit: String): Either[String, Long] = {
+    if (isNullOrEmpty(paramLimit)) {
+      return Right(5)
+    }
+
+    Try {
+      paramLimit.toLong
+    } match {
+      case Success(v) => Right(v)
+      case Failure(_) => Left("limit is invalid")
     }
   }
 
