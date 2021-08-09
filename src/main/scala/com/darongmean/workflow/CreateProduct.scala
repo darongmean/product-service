@@ -3,15 +3,9 @@ package com.darongmean.workflow
 import com.darongmean.Product
 import com.darongmean.Product._
 import com.darongmean.infrastructure.{H2Database, TraceId}
-import org.slf4j.{Logger, LoggerFactory}
 import slick.jdbc.H2Profile.api._
 
-import scala.concurrent.ExecutionContext
-
 class CreateProduct(val db: H2Database) {
-  val logger: Logger = LoggerFactory.getLogger(getClass)
-
-  implicit val ec: scala.concurrent.ExecutionContext = ExecutionContext.global
 
   def processRequest(request: InsertProduct) = {
     val traceId = TraceId.get()

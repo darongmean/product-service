@@ -27,6 +27,7 @@ class GetProduct(db: H2Database) {
     db.runAndWait(statement) match {
       case Right(Vector(Tuple4(productId, productName, productPriceUsd, productDescription))) =>
         Right(ProductData(productId, productName, productPriceUsd, productDescription))
+      case Right(_) => Left(null)
       case Left(ex) => Left(ex)
     }
   }

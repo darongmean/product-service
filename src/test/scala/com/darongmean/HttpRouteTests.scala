@@ -68,17 +68,69 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
     delete(s"/v1/product/$productId") {
       assert(status == 200)
       assert(header("Content-Type") == "application/json;charset=utf-8")
-
-      val selectProductActiveRows = db.runAndWait(
-        sql"select productId from ProductActive where productId = $productId".as[Long]
-      )
-      assert(selectProductActiveRows == Right(Vector()))
-
-      val selectProductRows = db.runAndWait(
-        sql"select count(*) from Product where productId = $productId".as[Long]
-      )
-      assert(selectProductRows == Right(Vector(2)))
     }
+  }
+
+  test("When a product is deleted, it's not included in any api response") {
+    var productId: Long = 0
+    // setup product 01
+    post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // setup product 02
+    post("/v1/product", write(InsertProduct(someProductName + "02", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // delete product
+    delete(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // assert
+    get(s"/v1/product/mostView?limit=10") {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[MultiProductResponse]
+      assert(!parsedResponse.data.exists(p => p.productName == someProductName + "02"))
+    }
+
+    get(s"/v1/product/$productId") {
+      assert(status == 404)
+    }
+  }
+
+  test("When a product is deleted, it should remain in db for audit") {
+    var productId: Long = 0
+    // setup product
+    post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    // delete product
+    delete(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // assert
+    val selectProductRows = db.runAndWait(
+      sql"select count(*) from Product where productId = $productId".as[Long]
+    )
+    assert(selectProductRows == Right(Vector(2)))
   }
 
   test("Get /v1/product should return status 200") {
@@ -110,6 +162,28 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
   }
 
   test("Get /v1/product/mostView should return status 200") {
+    var productId: Long = 0
+    // setup product
+    post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // assert
+    get(s"/v1/product/mostView?limit=10") {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[MultiProductResponse]
+      assert(parsedResponse.data.length == 1)
+      assert(parsedResponse.data.exists(p => p.productName == someProductName + "01"))
+    }
+  }
+
+  test("Get /v1/product/mostView should return product at least 1 view") {
     var productId: Long = 0
     // setup product 01
     post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
@@ -144,8 +218,6 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
 
       val parsedResponse = parse(body).extract[MultiProductResponse]
       assert(parsedResponse.data.length == 2)
-      assert(parsedResponse.data.exists(p => p.productName == someProductName + "01"))
-      assert(parsedResponse.data.exists(p => p.productName == someProductName + "02"))
       assert(!parsedResponse.data.exists(p => p.productName == someProductName + "03"))
     }
   }

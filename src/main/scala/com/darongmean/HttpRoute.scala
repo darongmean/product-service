@@ -67,7 +67,8 @@ class HttpRoute(val db: H2Database) extends ScalatraServlet with JacksonJsonSupp
     getProduct.processRequest(params("productId")) match {
       case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
       case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
-      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
+      case Left(null) => NotFound(NoDataResponse(status = 404, detail = "product not found", traceId = traceId))
+      case Left(_: Throwable) => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
   }
 
