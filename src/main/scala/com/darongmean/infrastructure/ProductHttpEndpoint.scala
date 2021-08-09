@@ -1,6 +1,6 @@
 package com.darongmean.infrastructure
 
-import com.darongmean.ProductService.CreateProductRequest
+import com.darongmean.ProductService.{CreateProductRequest, CreateProductResponse, NoDataResponse}
 import com.darongmean.workflow.{CreateProduct, DeleteProduct}
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
@@ -42,10 +42,20 @@ class ProductHttpEndpoint(val db: H2Database) extends ScalatraServlet with Jacks
   }
 
   post("/v1/product") {
-    createProduct.processRequest(parsedBody.extract[CreateProductRequest])
+    val traceId = TraceId.get()
+    createProduct.processRequest(parsedBody.extract[CreateProductRequest]) match {
+      case Right(productData) => Ok(CreateProductResponse(status = 200, data = productData, traceId = traceId))
+      case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
+      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
+    }
   }
 
   delete("/v1/product/:productId") {
-    deleteProduct.processRequest(params("productId"))
+    val traceId = TraceId.get()
+    deleteProduct.processRequest(params("productId")) match {
+      case Right(_) => Ok(NoDataResponse(status = 200, traceId = traceId))
+      case Left(_: String) => Ok(NoDataResponse(status = 200, traceId = traceId))
+      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
+    }
   }
 }

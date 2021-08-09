@@ -3,7 +3,6 @@ package com.darongmean.workflow
 import com.darongmean.ProductService
 import com.darongmean.ProductService._
 import com.darongmean.infrastructure.{H2Database, TraceId}
-import org.scalatra._
 import org.slf4j.{Logger, LoggerFactory}
 import slick.jdbc.H2Profile.api._
 
@@ -14,22 +13,16 @@ class CreateProduct(val db: H2Database) {
 
   implicit val ec: scala.concurrent.ExecutionContext = ExecutionContext.global
 
-  def processRequest(request: CreateProductRequest): ActionResult = {
+  def processRequest(request: CreateProductRequest) = {
     val traceId = TraceId.get()
 
-    val result = for {
+    for {
       request <- ProductService.validateCreateProductRequest(request)
       productPk <- insertProduct(traceId, request)
       _ <- insertProductActive(productPk)
       productData <- selectProduct(productPk)
     } yield {
       productData
-    }
-
-    result match {
-      case Right(productData) => Ok(CreateProductResponse(status = 200, data = productData, traceId = traceId))
-      case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
-      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
   }
 
