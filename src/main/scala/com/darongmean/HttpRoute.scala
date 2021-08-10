@@ -72,7 +72,7 @@ class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer) extends Scalat
     }
   }
 
-  get("/v1/product/mostView") {
+  get("/v1/mostViewed") {
     val traceId = TraceId.get()
     listMostViewProduct.processRequest(params.toMap) match {
       case Right(productDataList) => Ok(MultiProductResponse(status = 200, data = productDataList, traceId = traceId))

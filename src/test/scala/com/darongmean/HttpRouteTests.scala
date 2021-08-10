@@ -100,7 +100,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       assert(status == 200)
     }
     // assert
-    get(s"/v1/product/mostView?limit=10") {
+    get(s"/v1/mostViewed?limit=10") {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[MultiProductResponse]
@@ -181,7 +181,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
     }
   }
 
-  test("Get /v1/product/mostView should return status 200") {
+  test("Get /v1/mostViewed should return status 200") {
     var productId: Long = 0
     // setup product
     post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
@@ -194,7 +194,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       assert(status == 200)
     }
     // assert
-    get(s"/v1/product/mostView?limit=10") {
+    get(s"/v1/mostViewed?limit=10") {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[MultiProductResponse]
@@ -203,7 +203,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
     }
   }
 
-  test("Get /v1/product/mostView should return product at least 1 view") {
+  test("Get /v1/mostViewed should return product at least 1 view") {
     var productId: Long = 0
     // setup product 01
     post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
@@ -233,7 +233,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       assert(status == 200)
     }
     // assert
-    get(s"/v1/product/mostView?limit=10") {
+    get(s"/v1/mostViewed?limit=10") {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[MultiProductResponse]
@@ -242,7 +242,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
     }
   }
 
-  test("Get /v1/product/mostView should accept currency parameter") {
+  test("Get /v1/mostViewed should accept currency parameter") {
     var productId: Long = 0
     // setup product
     post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
@@ -271,7 +271,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       assert(status == 200)
     }
     // assert
-    get(s"/v1/product/mostView?limit=10&currency=eur") {
+    get(s"/v1/mostViewed?limit=10&currency=eur") {
       assert(status == 200)
 
       val parsedResponse = parse(body).extract[MultiProductResponse]
