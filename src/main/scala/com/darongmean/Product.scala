@@ -36,7 +36,8 @@ object Product {
 
   case class SelectProductByViewCount(limit: Long,
                                       minViewCount: Long = 1,
-                                      sortViewCount: String = "desc")
+                                      sortViewCount: String = "desc",
+                                      convertCurrency: Option[String] = None)
 
   def create(request: InsertProduct): Either[String, InsertProduct] = {
     if (isNullOrEmpty(request.productName)) {
@@ -83,17 +84,25 @@ object Product {
     }
   }
 
-  def mostView(paramLimit: String): Either[String, SelectProductByViewCount] = {
-    if (isNullOrEmpty(paramLimit)) {
-      return Right(SelectProductByViewCount(limit = 5))
+  def mostView(params: Map[String, String]): Either[String, SelectProductByViewCount] = {
+    val paramLimit = params.get("limit")
+    val parsedLimit = Try {
+      paramLimit.get.toLong
+    }
+    val limit: Long = parsedLimit.getOrElse(5)
+    if (paramLimit.isDefined && parsedLimit.isFailure) {
+      return Left("limit should be an integer")
     }
 
-    Try {
-      paramLimit.toLong
-    } match {
-      case Success(v) => Right(SelectProductByViewCount(limit = if (v <= 0) 5 else v))
-      case Failure(_) => Left("limit is invalid")
+    val paramCurrency = params.get("currency").map(_.toUpperCase)
+    val currency = paramCurrency.filter(Set("USD", "CAD", "EUR", "GBP").contains)
+    if (paramCurrency.isDefined && currency.isEmpty) {
+      return Left("currency should be one of USD, CAD, EUR, GBP")
     }
+
+    Right(SelectProductByViewCount(
+      limit = if (limit <= 0) 5 else limit,
+      convertCurrency = currency))
   }
 
   private def isNullOrEmpty(s: String) = null == s || s.isEmpty || s.isBlank

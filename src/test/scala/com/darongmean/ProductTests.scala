@@ -60,18 +60,41 @@ class ProductTests extends AnyFunSuite {
   }
 
   test("When get most viewed products, default top 5 products") {
-    val Right(mostView) = Product.mostView(null)
+    val Right(mostView) = Product.mostView(Map())
     assert(mostView.limit == 5)
 
-    val Right(mostView2) = Product.mostView("-1")
+    val Right(mostView2) = Product.mostView(Map("limit" -> "-1"))
     assert(mostView2.limit == 5)
 
-    val Right(mostView3) = Product.mostView("0")
+    val Right(mostView3) = Product.mostView(Map("limit" -> "0"))
     assert(mostView3.limit == 5)
+
+    val mostView4 = Product.mostView(Map("limit" -> "abc"))
+    assert(mostView4 == Left("limit should be an integer"))
   }
 
   test("When get most viewed products, only include at least 1 view") {
-    val Right(mostView) = Product.mostView(null)
+    val Right(mostView) = Product.mostView(Map())
     assert(mostView.minViewCount == 1)
+  }
+
+  test("When get most viewed products, convert currency to USD is supported") {
+    val Right(mostView) = Product.mostView(Map("currency" -> "usd"))
+    assert(mostView.convertCurrency.contains("USD"))
+  }
+
+  test("When get most viewed products, convert currency to GBP is supported") {
+    val Right(mostView) = Product.mostView(Map("currency" -> "gbp"))
+    assert(mostView.convertCurrency.contains("GBP"))
+  }
+
+  test("When get most viewed products, convert currency to EUR is supported") {
+    val Right(mostView) = Product.mostView(Map("currency" -> "eur"))
+    assert(mostView.convertCurrency.contains("EUR"))
+  }
+
+  test("When get most viewed products, convert currency to CAD is supported") {
+    val Right(mostView) = Product.mostView(Map("currency" -> "cad"))
+    assert(mostView.convertCurrency.contains("CAD"))
   }
 }

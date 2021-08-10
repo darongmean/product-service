@@ -2,17 +2,18 @@ package com.darongmean.workflow
 
 import com.darongmean.Product
 import com.darongmean.Product.{ProductData, SelectProductByViewCount}
-import com.darongmean.infrastructure.H2Database
+import com.darongmean.infrastructure.{CurrencyLayer, H2Database}
 import slick.jdbc.H2Profile.api._
 
-class ListMostViewProduct(db: H2Database) {
+class ListMostViewProduct(db: H2Database, currencyLayer: CurrencyLayer) {
 
-  def processRequest(paramLimit: String) = {
+  def processRequest(params: Map[String, String]) = {
     for {
-      criteria <- Product.mostView(paramLimit)
+      criteria <- Product.mostView(params)
       productDataList <- selectProduct(criteria)
+      productDataListWithCurrencyConverted <- convertCurrency(criteria, productDataList)
     } yield {
-      productDataList
+      productDataListWithCurrencyConverted
     }
   }
 
@@ -31,6 +32,17 @@ class ListMostViewProduct(db: H2Database) {
         })
       case Left(ex) => Left(ex)
     }
+  }
+
+  private def convertCurrency(criteria: SelectProductByViewCount, productDataList: Vector[ProductData]) = try {
+    criteria.convertCurrency match {
+      case Some(currency) => Right(productDataList.map(data => data.copy(
+        priceCurrency = currency,
+        productPrice = data.productPrice * currencyLayer.getExchangeRateFromUsd(currency))))
+      case None => Right(productDataList)
+    }
+  } catch {
+    case ex: Throwable => Left(ex)
   }
 
 }

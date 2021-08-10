@@ -241,4 +241,42 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       assert(!parsedResponse.data.exists(p => p.productName == someProductName + "03"))
     }
   }
+
+  test("Get /v1/product/mostView should accept currency parameter") {
+    var productId: Long = 0
+    // setup product
+    post("/v1/product", write(InsertProduct(someProductName + "01", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // setup product 02
+    post("/v1/product", write(InsertProduct(someProductName + "02", someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+    get(s"/v1/product/$productId") {
+      assert(status == 200)
+    }
+    // assert
+    get(s"/v1/product/mostView?limit=10&currency=eur") {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[MultiProductResponse]
+      assert(parsedResponse.data.map(_.priceCurrency) == Vector("EUR", "EUR"))
+      assert(parsedResponse.data.forall(p => p.productPrice != someProductPrice))
+    }
+  }
 }

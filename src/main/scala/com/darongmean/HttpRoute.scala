@@ -34,7 +34,7 @@ class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer) extends Scalat
   val createProduct = new CreateProduct(db)
   val deleteProduct = new DeleteProduct(db)
   val getProduct = new GetProduct(db, currencyLayer)
-  val listMostViewProduct = new ListMostViewProduct(db)
+  val listMostViewProduct = new ListMostViewProduct(db, currencyLayer)
 
   before() {
     contentType = formats("json")
@@ -74,7 +74,7 @@ class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer) extends Scalat
 
   get("/v1/product/mostView") {
     val traceId = TraceId.get()
-    listMostViewProduct.processRequest(params("limit")) match {
+    listMostViewProduct.processRequest(params.toMap) match {
       case Right(productDataList) => Ok(MultiProductResponse(status = 200, data = productDataList, traceId = traceId))
       case Left(_: String) => Ok(NoDataResponse(status = 200, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
