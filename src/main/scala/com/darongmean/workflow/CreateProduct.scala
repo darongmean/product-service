@@ -7,11 +7,11 @@ import slick.jdbc.H2Profile.api._
 
 class CreateProduct(val db: H2Database) {
 
-  def processRequest(request: InsertProduct) = {
+  def processRequest(requestBody: String) = {
     val traceId = TraceId.get()
 
     for {
-      data <- Product.create(request)
+      data <- Product.create(requestBody)
       productPk <- insertProduct(traceId, data)
       _ <- insertProductActive(productPk)
       productData <- selectProduct(productPk)

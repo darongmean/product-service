@@ -1,8 +1,14 @@
 package com.darongmean
 
+import org.json4s._
+import org.json4s.jackson.JsonMethods._
+import org.slf4j.LoggerFactory
+
 import scala.util.{Failure, Success, Try}
 
 object Product {
+  private implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal + new BigDecimalSerializer()
+  private val logger = LoggerFactory.getLogger(getClass)
 
   // http response
   case class ProductData(productId: Long,
@@ -39,7 +45,8 @@ object Product {
                                       sortViewCount: String = "desc",
                                       convertCurrency: Option[String] = None)
 
-  def create(request: InsertProduct): Either[String, InsertProduct] = {
+  def create(requestBody: String): Either[String, InsertProduct] = try {
+    val request = parse(requestBody).extract[InsertProduct]
     if (isNullOrEmpty(request.productName)) {
       return Left("productName is required")
     }
@@ -49,6 +56,15 @@ object Product {
     }
 
     Right(request)
+  } catch {
+    case ex: MappingException => {
+      logger.info(requestBody + " " + ex.getCause.getMessage)
+      Left("body is invalid")
+    }
+    case ex: Throwable => {
+      logger.error(requestBody, ex)
+      Left("body is invalid")
+    }
   }
 
   def delete(paramProductId: String): Either[String, Long] = {
@@ -107,3 +123,14 @@ object Product {
 
   private def isNullOrEmpty(s: String) = null == s || s.isEmpty || s.isBlank
 }
+
+class BigDecimalSerializer extends CustomSerializer[BigDecimal](_ => ( {
+  case JDecimal(x) => x
+  case JDouble(x) => BigDecimal(x)
+  case JInt(x) => BigDecimal(x)
+  case JLong(x) => BigDecimal(x)
+  case JNull => null
+  case JString(x) => BigDecimal(x)
+}, {
+  case x: String => JString(x)
+}))

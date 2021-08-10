@@ -46,7 +46,7 @@ class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer) extends Scalat
 
   post("/v1/product") {
     val traceId = TraceId.get()
-    createProduct.processRequest(parsedBody.extract[InsertProduct]) match {
+    createProduct.processRequest(request.body) match {
       case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
       case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))

@@ -6,21 +6,19 @@ import org.scalatest.funsuite.AnyFunSuite
 class ProductTests extends AnyFunSuite {
 
   test("When create product, product name is required") {
-    assert(Product.create(InsertProduct(productName = null)) == Left("productName is required"))
-    assert(Product.create(InsertProduct(productName = "")) == Left("productName is required"))
-    assert(Product.create(InsertProduct(productName = "   ")) == Left("productName is required"))
+    assert(Product.create("{\"productName\": null}") == Left("productName is required"))
+    assert(Product.create("{\"productName\": \"\"}") == Left("productName is required"))
+    assert(Product.create("{\"productName\": \"   \"}") == Left("productName is required"))
   }
 
   test("When create product, product price is required") {
-    val productNoPrice = InsertProduct(productName = "a", productPriceUsd = null)
-
-    assert(Product.create(productNoPrice) == Left("productPriceUsd is required"))
+    assert(Product.create("{\"productName\": \"a\"}") == Left("productPriceUsd is required"))
+    assert(Product.create("{\"productName\": \"a\", \"productPriceUsd\": null}") == Left("productPriceUsd is required"))
+    assert(Product.create("{\"productName\": \"a\", \"productPriceUsd\": \"abc\"}") == Left("body is invalid"))
   }
 
   test("When create product, product description is optional") {
-    val product = InsertProduct(productName = "a", productPriceUsd = 0)
-
-    assert(Product.create(product) == Right(product))
+    assert(Product.create("{\"productName\": \"a\", \"productPriceUsd\": 0}") == Right(InsertProduct("a", 0)))
   }
 
   test("When get a single product, increment view count by 1") {
