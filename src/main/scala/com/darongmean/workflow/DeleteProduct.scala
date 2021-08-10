@@ -7,7 +7,7 @@ import slick.jdbc.H2Profile.api._
 
 class DeleteProduct(db: H2Database) {
 
-  def processRequest(paramProductId: String) = {
+  def processRequest(paramProductId: String): Either[Serializable, Long] = {
     val traceId = TraceId.get()
 
     for {
@@ -19,20 +19,20 @@ class DeleteProduct(db: H2Database) {
     }
   }
 
-  def insertProduct(traceId: String, productId: Long): Either[Throwable, Int] = {
+  private def insertProduct(traceId: String, productId: Long) = {
     val statement =
       sqlu"""insert into Product(productId, productName, productPriceUsd, productDescription, traceId, softDeleteAt)
              select p.productId, productName, productPriceUsd, productDescription, $traceId, current_time()
              from Product p
              join ProductActive pa on p.productPk = pa.productPk
-             where pa.productId = ${productId}"""
+             where pa.productId = $productId"""
     db.runAndWait(statement)
   }
 
-  def deleteProductActive(productId: Long): Either[Throwable, Int] = {
+  private def deleteProductActive(productId: Long) = {
     val statement =
       sqlu"""delete from ProductActive
-             where productId = ${productId}"""
+             where productId = $productId"""
     db.runAndWait(statement)
   }
 

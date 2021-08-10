@@ -41,10 +41,9 @@ class CurrencyLayer(val apiAccessKey: String) {
   def getExchangeRateFromUsd(currency: String): BigDecimal = {
     cacheExchangeRate.get(s"USD$currency") match {
       case rate: BigDecimal => rate
-      case _ => {
+      case _ =>
         logger.error(s"no exchange rate for $currency")
         throw new Exception(s"no exchange rate for $currency")
-      }
     }
   }
 
@@ -82,7 +81,7 @@ class CurrencyLayer(val apiAccessKey: String) {
   protected def executeGetLiveQuotes: Option[SuccessResponse] = {
     val url = s"http://apilayer.net/api/live?currencies=EUR,GBP,CAD&source=USD&format=1"
     try {
-      val getMethod = new HttpGet(s"$url&access_key=${apiAccessKey}")
+      val getMethod = new HttpGet(s"$url&access_key=$apiAccessKey")
       val response = httpClient.execute(getMethod)
       val statusCode = getStatusCode(response)
       val body = getBody(response)
@@ -91,10 +90,9 @@ class CurrencyLayer(val apiAccessKey: String) {
 
       Some(parseResponse(body))
     } catch {
-      case ex: Throwable => {
+      case ex: Throwable =>
         logger.error(s"Get $url", ex)
         None
-      }
     }
   }
 

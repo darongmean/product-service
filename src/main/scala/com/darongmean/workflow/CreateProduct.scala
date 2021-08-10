@@ -7,7 +7,7 @@ import slick.jdbc.H2Profile.api._
 
 class CreateProduct(val db: H2Database) {
 
-  def processRequest(requestBody: String) = {
+  def processRequest(requestBody: String): Either[Serializable, ProductData] = {
     val traceId = TraceId.get()
 
     for {
@@ -20,7 +20,7 @@ class CreateProduct(val db: H2Database) {
     }
   }
 
-  def insertProduct(traceId: String, data: InsertProduct): Either[Throwable, Long] = {
+  private def insertProduct(traceId: String, data: InsertProduct) = {
     val statement =
       sqlu"""insert into Product(productName, productPriceUsd, productDescription, traceId)
              values (${data.productName},
@@ -34,20 +34,20 @@ class CreateProduct(val db: H2Database) {
     }
   }
 
-  def insertProductActive(productPk: Long): Either[Throwable, Int] = {
+  private def insertProductActive(productPk: Long) = {
     val statement =
       sqlu"""insert into ProductActive(productPk, productId, traceId)
              select productPk, productId, traceId
              from Product
-             where productPk = ${productPk}"""
+             where productPk = $productPk"""
     db.runAndWait(statement)
   }
 
-  def selectProduct(productPk: Long): Either[Throwable, ProductData] = {
+  private def selectProduct(productPk: Long) = {
     val statement =
       sql"""select productId, productName, productPriceUsd, productDescription
             from Product
-            where productPk = ${productPk}""".as[(Long, String, BigDecimal, String)]
+            where productPk = $productPk""".as[(Long, String, BigDecimal, String)]
     db.runAndWait(statement) match {
       case Right(Vector(Tuple4(productId, productName, productPriceUsd, productDescription))) =>
         Right(ProductData(productId, productName, productPriceUsd, productDescription))

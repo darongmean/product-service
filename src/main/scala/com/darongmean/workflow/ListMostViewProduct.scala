@@ -7,7 +7,7 @@ import slick.jdbc.H2Profile.api._
 
 class ListMostViewProduct(db: H2Database, currencyLayer: CurrencyLayer) {
 
-  def processRequest(params: Map[String, String]) = {
+  def processRequest(params: Map[String, String]): Either[Serializable, Vector[ProductData]] = {
     for {
       criteria <- Product.mostView(params)
       productDataList <- selectProduct(criteria)
@@ -17,7 +17,7 @@ class ListMostViewProduct(db: H2Database, currencyLayer: CurrencyLayer) {
     }
   }
 
-  def selectProduct(criteria: SelectProductByViewCount) = {
+  private def selectProduct(criteria: SelectProductByViewCount) = {
     val statement =
       sql"""select p.productId, productName, productPriceUsd, productDescription
             from Product p

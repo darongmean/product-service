@@ -48,7 +48,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       assert(parsedResponse.data.productId != 0)
 
       val selectRows = db.runAndWait(
-        sql"select productPriceUsd from Product".as[(BigDecimal)]
+        sql"select productPriceUsd from Product".as[BigDecimal]
       )
       assert(selectRows == Right(Vector(someProductPrice)))
     }

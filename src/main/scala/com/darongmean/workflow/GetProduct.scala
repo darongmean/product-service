@@ -8,7 +8,7 @@ import slick.jdbc.H2Profile.api._
 
 class GetProduct(db: H2Database, currencyLayer: CurrencyLayer) {
 
-  def processRequest(params: Map[String, String]) = {
+  def processRequest(params: Map[String, String]): Either[Serializable, ProductData] = {
     for {
       view <- Product.view(params)
       productData <- selectProduct(view)
@@ -33,7 +33,7 @@ class GetProduct(db: H2Database, currencyLayer: CurrencyLayer) {
     }
   }
 
-  private def incrementViewCount(view: UpdateViewCount): Either[Throwable, Int] = {
+  private def incrementViewCount(view: UpdateViewCount) = {
     val statement =
       sqlu"""update ProductActive
              set viewCount = viewCount + ${view.increment}

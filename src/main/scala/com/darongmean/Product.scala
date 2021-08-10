@@ -57,14 +57,12 @@ object Product {
 
     Right(request)
   } catch {
-    case ex: MappingException => {
+    case ex: MappingException =>
       logger.info(requestBody + " " + ex.getCause.getMessage)
       Left("body is invalid")
-    }
-    case ex: Throwable => {
+    case ex: Throwable =>
       logger.error(requestBody, ex)
       Left("body is invalid")
-    }
   }
 
   def delete(paramProductId: String): Either[String, Long] = {
@@ -83,20 +81,20 @@ object Product {
   def view(params: Map[String, String]): Either[String, UpdateViewCount] = {
     val paramProductId = params.getOrElse("productId", null)
     if (isNullOrEmpty(paramProductId)) {
-      return Left("param productId is invalid")
+      return Left("productId is invalid")
     }
 
     val paramCurrency = params.get("currency").map(_.toUpperCase)
     val currency = paramCurrency.filter(Set("USD", "CAD", "EUR", "GBP").contains)
     if (paramCurrency.isDefined && currency.isEmpty) {
-      return Left("param currency should be one of USD, CAD, EUR, GBP")
+      return Left("currency should be one of USD, CAD, EUR, GBP")
     }
 
     Try {
       paramProductId.toLong
     } match {
       case Success(v) => Right(UpdateViewCount(productId = v, convertCurrency = currency))
-      case Failure(_) => Left("param productId is invalid")
+      case Failure(_) => Left("productId is invalid")
     }
   }
 

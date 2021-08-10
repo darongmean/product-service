@@ -11,15 +11,12 @@ class ScalatraBootstrap extends LifeCycle {
 
   val db = new H2Database
   val currencyLayerApiAccessKey: Option[String] = sys.env.get("CURRENCY_LAYER_API_ACCESS_KEY")
-  var currencyLayer: CurrencyLayer = null
+  var currencyLayer: CurrencyLayer = Option.empty[CurrencyLayer].orNull
 
   override def init(context: ServletContext): Unit = {
-    currencyLayerApiAccessKey.filterNot(_.isBlank) match {
-      case Some(v) => v
-      case None => {
-        logger.error("CURRENCY_LAYER_API_ACCESS_KEY environment variable must be set")
-        throw new Exception("CURRENCY_LAYER_API_ACCESS_KEY environment variable must be set")
-      }
+    if (currencyLayerApiAccessKey.forall(_.isBlank)) {
+      logger.error("CURRENCY_LAYER_API_ACCESS_KEY environment variable must be set")
+      throw new Exception("CURRENCY_LAYER_API_ACCESS_KEY environment variable must be set")
     }
     currencyLayer = new CurrencyLayer(currencyLayerApiAccessKey.get)
     currencyLayer.init()

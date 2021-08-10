@@ -23,10 +23,9 @@ class H2Database {
       val result = db.run(action.transactionally)
       Right(Await.result(result, Duration(10, TimeUnit.SECONDS)))
     } catch {
-      case ex: Throwable => {
+      case ex: Throwable =>
         logger.error("db exception", ex)
         Left(ex)
-      }
     }
   }
 }
