@@ -7,8 +7,9 @@ object Product {
   // http response
   case class ProductData(productId: Long,
                          productName: String,
-                         productPriceUsd: BigDecimal,
-                         productDescription: String)
+                         productPrice: BigDecimal,
+                         productDescription: String,
+                         priceCurrency: String = "USD")
 
   case class NoDataResponse(status: Int,
                             detail: String = null,
@@ -29,7 +30,9 @@ object Product {
                            productPriceUsd: BigDecimal = null,
                            productDescription: String = null)
 
-  case class UpdateViewCount(productId: Long, increment: Long = 1)
+  case class UpdateViewCount(productId: Long,
+                             increment: Long = 1,
+                             convertCurrency: Option[String] = None)
 
   case class SelectProductByViewCount(limit: Long,
                                       minViewCount: Long = 1,
@@ -60,16 +63,23 @@ object Product {
     }
   }
 
-  def view(paramProductId: String): Either[String, UpdateViewCount] = {
+  def view(params: Map[String, String]): Either[String, UpdateViewCount] = {
+    val paramProductId = params.getOrElse("productId", null)
     if (isNullOrEmpty(paramProductId)) {
-      return Left("productId is invalid")
+      return Left("param productId is invalid")
+    }
+
+    val paramCurrency = params.get("currency").map(_.toUpperCase)
+    val currency = paramCurrency.filter(Set("USD", "CAD", "EUR", "GBP").contains)
+    if (paramCurrency.isDefined && currency.isEmpty) {
+      return Left("param currency should be one of USD, CAD, EUR, GBP")
     }
 
     Try {
       paramProductId.toLong
     } match {
-      case Success(v) => Right(UpdateViewCount(productId = v))
-      case Failure(_) => Left("productId is invalid")
+      case Success(v) => Right(UpdateViewCount(productId = v, convertCurrency = currency))
+      case Failure(_) => Left("param productId is invalid")
     }
   }
 

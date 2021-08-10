@@ -1,7 +1,7 @@
 package com.darongmean
 
 import com.darongmean.Product._
-import com.darongmean.infrastructure.H2Database
+import com.darongmean.infrastructure.{CurrencyLayer, H2Database}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -9,7 +9,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatra.test.scalatest._
 import org.slf4j.{Logger, LoggerFactory}
 import slick.jdbc.H2Profile.api._
-
 
 class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
 
@@ -30,7 +29,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
     db.closeDbConnection()
   }
 
-  addServlet(new HttpRoute(db), "/*")
+  addServlet(new HttpRoute(db, new CurrencyLayer(null)), "/*")
 
   val someProductName = "name-abc-001"
   val someProductPrice: BigDecimal = 100.59
@@ -44,7 +43,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       val parsedResponse = parse(body).extract[SingleProductResponse]
       assert(parsedResponse.status == 200)
       assert(parsedResponse.data.productName == someProductName)
-      assert(parsedResponse.data.productPriceUsd == someProductPrice)
+      assert(parsedResponse.data.productPrice == someProductPrice)
       assert(parsedResponse.data.productDescription == someProductDescription)
       assert(parsedResponse.data.productId != 0)
 
@@ -150,7 +149,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
       val parsedResponse = parse(body).extract[SingleProductResponse]
       assert(parsedResponse.status == 200)
       assert(parsedResponse.data.productName == someProductName)
-      assert(parsedResponse.data.productPriceUsd == someProductPrice)
+      assert(parsedResponse.data.productPrice == someProductPrice)
       assert(parsedResponse.data.productDescription == someProductDescription)
       assert(parsedResponse.data.productId == productId)
 
@@ -158,6 +157,27 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
         sql"select viewCount from ProductActive where productId = $productId".as[Long]
       )
       assert(selectProductActiveRows == Right(Vector(1)))
+    }
+  }
+
+  test("Get /v1/product/productId should support param currency") {
+    var productId: Long = 0
+
+    post("/v1/product", write(InsertProduct(someProductName, someProductPrice, someProductDescription))) {
+      assert(status == 200)
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      productId = parsedResponse.data.productId
+    }
+
+    get(s"/v1/product/$productId?currency=cad") {
+      assert(status == 200)
+      assert(header("Content-Type") == "application/json;charset=utf-8")
+
+      val parsedResponse = parse(body).extract[SingleProductResponse]
+      assert(parsedResponse.status == 200)
+      assert(parsedResponse.data.priceCurrency == "CAD")
+      assert(parsedResponse.data.productPrice != someProductPrice)
     }
   }
 

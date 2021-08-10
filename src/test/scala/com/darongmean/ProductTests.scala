@@ -25,10 +25,38 @@ class ProductTests extends AnyFunSuite {
 
   test("When get a single product, increment view count by 1") {
     val productId = 123
-    val Right(view) = Product.view(productId.toString)
+    val Right(view) = Product.view(Map("productId" -> productId.toString))
 
     assert(view.productId == productId)
     assert(view.increment == 1)
+  }
+
+  test("When get a single product, convert currency to USD is supported") {
+    val Right(view) = Product.view(
+      Map("productId" -> "123", "currency" -> "usd"))
+
+    assert(view.convertCurrency.contains("USD"))
+  }
+
+  test("When get a single product, convert currency to CAD is supported") {
+    val Right(view) = Product.view(
+      Map("productId" -> "123", "currency" -> "cad"))
+
+    assert(view.convertCurrency.contains("CAD"))
+  }
+
+  test("When get a single product, convert currency to GBP is supported") {
+    val Right(view) = Product.view(
+      Map("productId" -> "123", "currency" -> "gbp"))
+
+    assert(view.convertCurrency.contains("GBP"))
+  }
+
+  test("When get a single product, convert currency to EUR is supported") {
+    val Right(view) = Product.view(
+      Map("productId" -> "123", "currency" -> "eur"))
+
+    assert(view.convertCurrency.contains("EUR"))
   }
 
   test("When get most viewed products, default top 5 products") {

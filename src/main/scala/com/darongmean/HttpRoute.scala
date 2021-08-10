@@ -1,7 +1,7 @@
 package com.darongmean
 
 import com.darongmean.Product._
-import com.darongmean.infrastructure.{H2Database, TraceId}
+import com.darongmean.infrastructure.{CurrencyLayer, H2Database, TraceId}
 import com.darongmean.workflow._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
@@ -28,12 +28,12 @@ import org.scalatra.json._
    - should remain in db for audit purpose
  */
 
-class HttpRoute(val db: H2Database) extends ScalatraServlet with JacksonJsonSupport {
+class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer) extends ScalatraServlet with JacksonJsonSupport {
   protected implicit lazy val jsonFormats: Formats = DefaultFormats.withBigDecimal
 
   val createProduct = new CreateProduct(db)
   val deleteProduct = new DeleteProduct(db)
-  val getProduct = new GetProduct(db)
+  val getProduct = new GetProduct(db, currencyLayer)
   val listMostViewProduct = new ListMostViewProduct(db)
 
   before() {
@@ -64,11 +64,11 @@ class HttpRoute(val db: H2Database) extends ScalatraServlet with JacksonJsonSupp
 
   get("/v1/product/:productId") {
     val traceId = TraceId.get()
-    getProduct.processRequest(params("productId")) match {
+    getProduct.processRequest(params.toMap) match {
       case Right(productData) => Ok(SingleProductResponse(status = 200, data = productData, traceId = traceId))
       case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
       case Left(null) => NotFound(NoDataResponse(status = 404, detail = "product not found", traceId = traceId))
-      case Left(_: Throwable) => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
+      case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
   }
 

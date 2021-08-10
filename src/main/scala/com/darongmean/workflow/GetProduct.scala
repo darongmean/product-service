@@ -2,23 +2,24 @@ package com.darongmean.workflow
 
 import com.darongmean.Product
 import com.darongmean.Product._
-import com.darongmean.infrastructure.H2Database
+import com.darongmean.infrastructure.{CurrencyLayer, H2Database}
 import slick.jdbc.H2Profile.api._
 
 
-class GetProduct(db: H2Database) {
+class GetProduct(db: H2Database, currencyLayer: CurrencyLayer) {
 
-  def processRequest(paramProductId: String) = {
+  def processRequest(params: Map[String, String]) = {
     for {
-      view <- Product.view(paramProductId)
+      view <- Product.view(params)
       productData <- selectProduct(view)
       _ <- incrementViewCount(view)
+      productWithCurrencyConverted <- convertCurrency(view, productData)
     } yield {
-      productData
+      productWithCurrencyConverted
     }
   }
 
-  def selectProduct(view: UpdateViewCount) = {
+  private def selectProduct(view: UpdateViewCount) = {
     val statement =
       sql"""select p.productId, productName, productPriceUsd, productDescription
             from Product p
@@ -32,7 +33,7 @@ class GetProduct(db: H2Database) {
     }
   }
 
-  def incrementViewCount(view: UpdateViewCount): Either[Throwable, Int] = {
+  private def incrementViewCount(view: UpdateViewCount): Either[Throwable, Int] = {
     val statement =
       sqlu"""update ProductActive
              set viewCount = viewCount + ${view.increment}
@@ -40,4 +41,14 @@ class GetProduct(db: H2Database) {
     db.runAndWait(statement)
   }
 
+  private def convertCurrency(view: UpdateViewCount, data: ProductData) = try {
+    view.convertCurrency match {
+      case Some(currency) => Right(data.copy(
+        priceCurrency = currency,
+        productPrice = data.productPrice * currencyLayer.getExchangeRateFromUsd(currency)))
+      case None => Right(data)
+    }
+  } catch {
+    case ex: Throwable => Left(ex)
+  }
 }
