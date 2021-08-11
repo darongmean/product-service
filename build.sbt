@@ -30,6 +30,8 @@ lazy val productService = (project in file("."))
       "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime",
       // testing
       "org.scalatra" %% "scalatra-scalatest" % ScalatraVersion % "test",
+      // swagger
+      "org.scalatra" %% "scalatra-swagger" % ScalatraVersion,
     ),
   )
 

@@ -1,7 +1,7 @@
 package com.darongmean
 
 import com.darongmean.Product._
-import com.darongmean.infrastructure.{CurrencyLayer, H2Database}
+import com.darongmean.infrastructure.{CurrencyLayer, H2Database, ProductServiceSwagger}
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import org.json4s.jackson.Serialization._
@@ -15,6 +15,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
   val logger: Logger = LoggerFactory.getLogger(getClass)
   val db = new H2Database
 
+  implicit val swagger: ProductServiceSwagger = new ProductServiceSwagger
   implicit val jsonToObject: Formats = DefaultFormats.withBigDecimal
 
   override protected def beforeEach(): Unit = {
@@ -29,7 +30,7 @@ class HttpRouteTests extends ScalatraFunSuite with BeforeAndAfterEach {
     db.closeDbConnection()
   }
 
-  addServlet(new HttpRoute(db, new CurrencyLayer(null)), "/*")
+  addServlet(new HttpRoute(db, new CurrencyLayer(null)), "/v1")
 
   val someProductName = "name-abc-001"
   val someProductPrice: BigDecimal = 100.59

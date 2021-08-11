@@ -1,33 +1,16 @@
 # product-service #
 
-The following endpoints are implemented:
+REST API for managing products. The API does the following:
+- Create a new product.
+- Get a single product. 
+    - The request can optionally specify a currency, in which case the price is converted to the requested currency before being returned.
+- List the most viewed products.
+    - The request can specify a custom number of products to return. By default, the top 5 products will be returned.
+    - The request can optionally specify a currency, in which case the price is converted to the requested currency before being returned.
+- Delete a single product. 
+    - After deleted, the product remains in the database, but it's not included in any of the API response.
 
-1. `Get` /
-
-2. `Post` /v1/product
-
-Create a new product. It expects a json object with the following fields:
-
-- `productName`: required, the name of the product.
-- `productPriceUsd`: required, the product price in USD.
-- `productDescription`: optional, the description of the product.
-
-3. `Get` /v1/product/...productId...
-
-Get a single product information. Support the following params:
-
-- `currency`: optional, one of `USD`, `CAD`, `GBP`, and `EUR`.
-
-4. `Delete` /v1/product/...productId...
-
-Delete the product.
-
-6. `Get` /v1/mostViewed
-
-Get a list of products that got the most viewed. Support the following params:
-
-- `limit`: default to 5. The maximum amount of products being returned.
-- `currency`: optional, one of `USD`, `CAD`, `GBP`, and `EUR`.
+[Swagger UI](#swagger-ui) is available at http://localhost:8080/swagger-ui to explore the API.
 
 ## Requirement ##
 
@@ -63,3 +46,7 @@ $ just CURRENCY_LAYER_API_ACCESS_KEY="123_api_key" test-refresh
 ```
 
 Tested on AdoptOpenJDK Java 11.0.11.
+
+## Swagger UI ##
+
+![Screenshot Swagger UI](docs/screenshot-swagger-ui.png)
