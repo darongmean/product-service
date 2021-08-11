@@ -69,7 +69,7 @@ class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer)(implicit val s
     operation(apiOperation[MultiProductResponse]("listMostViewProduct")
       summary "Return the products with the highest view-counts. Only products with at least 1 view is included."
       parameters(
-      queryParam[Option[String]]("limit").description("The maximum number of products to be returned. Default 5."),
+      queryParam[Option[Long]]("limit").description("The maximum number of products to be returned. Default 5."),
       queryParam[Option[String]]("currency").description("The currency of the productPrice to be converted into. One of USD, CAD, EUR, GBP.")))) {
     val traceId = TraceId.get()
     listMostViewProduct.processRequest(params.toMap) match {
