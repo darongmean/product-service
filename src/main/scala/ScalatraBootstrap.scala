@@ -16,7 +16,6 @@ class ScalatraBootstrap extends LifeCycle {
   override def init(context: ServletContext): Unit = {
     if (currencyLayerApiAccessKey.forall(_.isBlank)) {
       logger.error("CURRENCY_LAYER_API_ACCESS_KEY environment variable must be set")
-      throw new Exception("CURRENCY_LAYER_API_ACCESS_KEY environment variable must be set")
     }
     currencyLayer = new CurrencyLayer(currencyLayerApiAccessKey.get)
     currencyLayer.init()
