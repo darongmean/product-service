@@ -74,7 +74,7 @@ class HttpRoute(val db: H2Database, currencyLayer: CurrencyLayer)(implicit val s
     val traceId = TraceId.get()
     listMostViewProduct.processRequest(params.toMap) match {
       case Right(productDataList) => Ok(MultiProductResponse(status = 200, data = productDataList, traceId = traceId))
-      case Left(_: String) => Ok(NoDataResponse(status = 200, traceId = traceId))
+      case Left(err: String) => BadRequest(NoDataResponse(status = 400, detail = err, traceId = traceId))
       case _ => InternalServerError(NoDataResponse(status = 500, traceId = traceId))
     }
   }
